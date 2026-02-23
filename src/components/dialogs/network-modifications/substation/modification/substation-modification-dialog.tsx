@@ -12,7 +12,6 @@ import {
     EquipmentType,
     getConcatenatedProperties,
     getPropertiesFromModification,
-    modificationPropertiesSchema,
     Property,
     snackWithFallback,
     toModificationProperties,
@@ -20,10 +19,13 @@ import {
     DeepNullable,
     sanitizeString,
     FieldConstants,
+    SubstationModificationForm,
+    substationModificationFormSchema,
+    SubstationModificationFormData,
+    substationModificationEmptyFormData,
+    SubstationModificationInfos,
 } from '@gridsuite/commons-ui';
 import { yupResolver } from '@hookform/resolvers/yup';
-import yup from 'components/utils/yup-config';
-import SubstationModificationForm from './substation-modification-form';
 import { useOpenShortWaitFetching } from 'components/dialogs/commons/handle-modification-form';
 import { FORM_LOADING_DELAY } from 'components/network/constants';
 import { EQUIPMENT_INFOS_TYPES, EQUIPMENT_TYPES } from 'components/utils/equipment-types';
@@ -36,23 +38,6 @@ import { UUID } from 'node:crypto';
 import { CurrentTreeNode } from '../../../../graph/tree-node.type';
 import { AttributeModification } from 'services/network-modification-types';
 import { useForm } from 'react-hook-form';
-import { SubstationInfos } from '../substation-dialog.type';
-
-const formSchema = yup
-    .object()
-    .shape({
-        [FieldConstants.EQUIPMENT_NAME]: yup.string().nullable(),
-        [FieldConstants.COUNTRY]: yup.string().nullable(),
-    })
-    .concat(modificationPropertiesSchema);
-
-export type SubstationModificationFormData = yup.InferType<typeof formSchema>;
-
-const emptyFormData: SubstationModificationFormData = {
-    [FieldConstants.EQUIPMENT_NAME]: '',
-    [FieldConstants.COUNTRY]: null,
-    [FieldConstants.ADDITIONAL_PROPERTIES]: [],
-};
 
 interface SubstationModificationEditData {
     uuid?: UUID;
@@ -96,12 +81,12 @@ const SubstationModificationDialog = ({
     const currentNodeUuid = currentNode?.id;
     const { snackError } = useSnackMessage();
     const [selectedId, setSelectedId] = useState(defaultIdValue ?? null);
-    const [substationToModify, setSubstationToModify] = useState<SubstationInfos>();
+    const [substationToModify, setSubstationToModify] = useState<SubstationModificationInfos>();
     const [dataFetchStatus, setDataFetchStatus] = useState(FetchStatus.IDLE);
 
     const formMethods = useForm<DeepNullable<SubstationModificationFormData>>({
-        defaultValues: emptyFormData,
-        resolver: yupResolver<DeepNullable<SubstationModificationFormData>>(formSchema),
+        defaultValues: substationModificationEmptyFormData,
+        resolver: yupResolver<DeepNullable<SubstationModificationFormData>>(substationModificationFormSchema),
     });
     const { reset, getValues } = formMethods;
 
@@ -119,7 +104,7 @@ const SubstationModificationDialog = ({
     }, [reset, editData]);
 
     const clear = useCallback(() => {
-        reset(emptyFormData);
+        reset(substationModificationEmptyFormData);
     }, [reset]);
 
     const onEquipmentIdChange = useCallback(
@@ -135,7 +120,7 @@ const SubstationModificationDialog = ({
                     equipmentId,
                     true
                 )
-                    .then((substation: SubstationInfos) => {
+                    .then((substation: SubstationModificationInfos) => {
                         if (substation) {
                             setSubstationToModify(substation);
                             reset(
@@ -159,7 +144,7 @@ const SubstationModificationDialog = ({
                     });
             } else {
                 setSubstationToModify(undefined);
-                reset(emptyFormData, { keepDefaultValues: true });
+                reset(substationModificationEmptyFormData, { keepDefaultValues: true });
             }
         },
         [studyUuid, currentRootNetworkUuid, currentNodeUuid, reset, getValues, editData]
@@ -198,7 +183,7 @@ const SubstationModificationDialog = ({
 
     return (
         <CustomFormProvider
-            validationSchema={formSchema}
+            validationSchema={substationModificationFormSchema}
             {...formMethods}
             removeOptional={true}
             isNodeBuilt={isNodeBuilt(currentNode)}
