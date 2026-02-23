@@ -96,6 +96,7 @@ const SubstationModificationDialog = ({
                 setSelectedId(editData.equipmentId);
             }
             reset({
+                [FieldConstants.EQUIPMENT_ID]: editData.equipmentId,
                 [FieldConstants.EQUIPMENT_NAME]: editData.equipmentName?.value ?? '',
                 [FieldConstants.COUNTRY]: editData.country?.value ?? null,
                 ...getPropertiesFromModification(editData?.properties ?? undefined),
@@ -126,6 +127,7 @@ const SubstationModificationDialog = ({
                             reset(
                                 (formValues) => ({
                                     ...formValues,
+                                    [FieldConstants.EQUIPMENT_ID]: equipmentId,
                                     [FieldConstants.ADDITIONAL_PROPERTIES]: getConcatenatedProperties(
                                         substation,
                                         getValues
@@ -211,7 +213,7 @@ const SubstationModificationDialog = ({
                     />
                 )}
                 {selectedId != null && (
-                    <SubstationModificationForm substationToModify={substationToModify} equipmentId={selectedId} />
+                    <SubstationModificationForm substationToModify={substationToModify} />
                 )}
             </ModificationDialog>
         </CustomFormProvider>
